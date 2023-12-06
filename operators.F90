@@ -2,6 +2,8 @@ module operators
     use kinds
     use constants
 
+    implicit NONE
+
 
     contains
 
@@ -98,6 +100,34 @@ module operators
         greatCircleDistance = earth_radius * dsigma
 
     end SUBROUTINE getDistance
+
+
+    ! SUBROUTINE getDistance1D(center_LAT, center_LON, LAT, LON, greatCircleDistance)
+    !     real(kind = real_kind):: center_LAT, center_LON
+    !     real(kind=real_kind), dimension(:) :: LAT, LON, greatCircleDistance 
+
+    !     real(kind=real_kind), dimension(:), allocatable :: dlambda, phi1, phi2,   &
+    !                                                        numerator, denominator,&
+    !                                                        dsigma
+
+    !     integer :: arrLen
+
+    !     arrLen = size(LAT)
+
+    !     allocate(dlambda(arrLen), phi1(arrLen), phi2(arrLen), numerator(arrLen), denominator(arrLen))
+
+    !     dlambda = LON - center_LON
+    !     phi1(:) = center_LAT
+    !     phi2(:) = LAT(:)
+
+    !     numerator = ( cos(phi2)*sin(dlambda) )**2 + (cos(phi1)*sin(phi2) -sin(phi1)*cos(phi2)*cos(dlambda))**2
+    !     numerator = sqrt(numerator)
+    !     denominator = sin(phi1)*sin(phi2) + cos(phi1)*cos(phi2)*cos(dlambda)
+
+    !     dsigma = atan2(numerator, denominator)
+    !     greatCircleDistance = earth_radius * dsigma
+
+    ! end SUBROUTINE getDistance
 
 
 end module

@@ -114,8 +114,76 @@ module filterModule
 
     end subroutine
 
+    subroutine getMaskedArrAndWeightByDist(ell_filter, center_lat, center_lon,                          &
+                                           in2dlat, in2dlon, in2darea                       &
+                                           out1d_i_index, out1d_j_index, out1d_weight)
 
 
+        real(kind=real_kind), intent(in) ::  ell_filter, center_lat, center_lon
+        real(kind=real_kind), dimension(:,:), intent(in) ::  in2dlat, in2dlon, in2darea
+        real(kind=real_kind), dimension(:), allocatable, intent(out) :: out1d_i_index, out1d_j_index, out1d_weight
+
+        integer :: nx, ny, err_stat, x_counter, y_counter, sizeMasked
+        logical, allocatable, dimension(:,:) :: mask2d
+        integer, allocatable, dimension(:) :: lat_1d, lon_1d, area_1d
+        integer, allocatable, dimension(:,:) :: lat_indices, lon_indices, greatCircleDistance
+
+        nx = size(in2dlat, dim=1)
+        ny = size(in2dlat, dim=2)
+
+        allocate(lat_1d_indices(ny),     &
+                 lon_1d_indices(nx)      &
+                 stat=i_err)
+
+        lat_1d_indices = (/(I, I=1, ny, 1)/)
+        lon_1d_indices = (/(I, I=1, nx, 1)/)
+
+
+        allocate(greatCircleDistance(nx,ny),    &
+                 mask2d(nx,ny)                    &
+                 stat=i_err)
+
+        call getDistance(center_lat, center_lon, in2dlat, in2dlon, greatCircleDistance)
+
+        where (greatCircleDistance < (1.1 * ell_filter ))  ! 10% tolerance
+            mask2d = 1
+        elsewhere
+            mask2d = 0
+        end where
+
+        sizeMasked = sum(mask2d)
+
+        allocate(out1d_i_index(sizeMasked),  &
+                 out1d_j_index(sizeMasked),  &
+                 lat_1d(sizeMasked),         &
+                 lon_1d(sizeMasked),         &
+                 area_1d(sizeMasked),        &
+                 out1d_weight(sizeMasked),   &
+                 stat=err_stat)
+        
+        allocate(lat_indices(nx,ny),    &
+                 lon_indices(nx,ny),
+                 stat=i_err)
+
+
+        do x_counter = 1, nx
+            lat_indices(x_counter,:) = lat_1d_indices(:)
+        end do
+
+        do y_counter = 1, ny
+            lon_indices(:,y_counter) = lon_1d_indices(:)
+        end do
+
+        out1d_i_index = pack(lon_indices, mask=mask2d)
+        out1d_j_index = pack(lat_indices, mask=mask2d)
+
+        deallocate(lat_indices, lon_indices)
+        
+
+
+        
+    
+    end subroutine getMaskedArrAndWeightByDist
 
 
 end module filterModule
