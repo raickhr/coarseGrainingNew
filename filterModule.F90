@@ -1,8 +1,60 @@
 module filterModule
 
     use kinds
+    use operators
+
+    implicit NONE
 
     contains
+
+    SUBROUTINE filterAtIJ(filtered_fields_atIJ, ell_filter, field2D, center_LAT, center_LON, LAT, LON, AREA)
+        real(kind = real_kind), dimension(:,:,:), intent(in) :: field2D
+        real(kind = real_kind), dimension(:,:), intent(in) :: LAT, LON, AREA
+        real(kind = real_kind) :: ell_filter, center_LAT, center_LON
+
+
+        real(kind = real_kind), dimension(:,:), allocatable :: distance, weight, &
+                                                               weightedArea, kernelArea, kernel, &
+                                                               workArr
+
+        real(kind = real_kind), dimension(:), intent(inout) :: filtered_fields_atIJ
+            
+
+        integer :: arrShape(3), nx, ny, nfields, ierr, counter_k
+
+        arrShape = shape(field2D)
+
+        nx =  arrShape(1)
+        ny = arrShape(2)
+        nfields = arrShape(3)
+
+        allocate(distance(nx, ny),     &
+                 weight(nx, ny),       &
+                 workArr(nx, ny),      &
+                 weightedArea(nx, ny), &
+                 kernelArea(nx, ny),   &
+                 kernel(nx, ny),       &
+                 stat=ierr)
+
+        call getDistance(center_LAT, center_LON, LAT, LON, distance)
+
+        workArr(:,:) = 0.5
+
+        distance = distance * 1d3  ! changing to KM from meters
+        ell_filter = ell_filter * 1d3  ! changing to KM from meters
+
+
+        kernel = workArr-0.5*dtanh((distance-(ell_filter/2))/10.0)
+        weightedArea = kernel * AREA
+        kernelArea = sum(weightedArea)
+
+        weight = weightedArea(:,:)/kernelArea
+
+        do counter_k = 1, nfields
+            filtered_fields_atIJ(counter_k) = sum(weight(:,:) * field2D(:,:,counter_k))
+        end do
+
+    end SUBROUTINE filterAtIJ
 
     subroutine filterScalarFieldOnSphere(padsize, ell_filter, field2D, filtered_field2D, LAT, LON, AREA)
         integer(kind = int_kind), intent(in), dimension(:) :: padsize
@@ -19,7 +71,7 @@ module filterModule
                    x_start, x_end, &
                    y_start, y_end
 
-        integer :: ierr
+        integer :: ierr, i_counter, j_counter
 
         field_shape = shape(field2D)
         nx = field_shape(1)
@@ -51,10 +103,14 @@ module filterModule
         y_start = padsize(3) + 1
         y_end = ny - padsize(4)
 
-
-
-
-        
+        do j_counter=y_start, y_end
+            do i_counter=x_start, x_end
+                call filterAtIJ(filtered_field2D(i_counter, j_counter,:), &
+                                ell_filter, field2D, &
+                                LAT(i_counter, j_counter), center_LON(i_counter, j_counter), &
+                                LAT, LON, AREA)
+            end do
+        end do
 
     end subroutine
 
