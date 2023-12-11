@@ -1,4 +1,4 @@
-module filterModule
+module weight_calc
 
     use kinds
     use operators
@@ -52,8 +52,6 @@ module filterModule
         mask2d = greatCircleDistance .LT. (1.1 * (ell_filter/2) ) ! 10% tolerance
 
         sizeMasked = count(mask2d)
-        print *, sizeMasked
-
 
         greatCircleDistance = greatCircleDistance / 1d3  ! changing to KM from meters
         ell_filterInKM = ell_filter / 1d3  ! changing to KM from meters
@@ -94,4 +92,4 @@ module filterModule
     
     end subroutine getMaskedArrAndWeightByDist
 
-end module filterModule
+end module weight_calc
