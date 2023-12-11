@@ -157,6 +157,11 @@ module filterModule
                  stat=i_err)
 
         call getDistance(center_lat, center_lon, in2dlat, in2dlon, greatCircleDistance)
+        mask2d = greatCircleDistance .LT. (1.1 * (ell_filter/2) ) ! 10% tolerance
+
+        sizeMasked = count(mask2d)
+        print *, sizeMasked
+
 
         greatCircleDistance = greatCircleDistance / 1d3  ! changing to KM from meters
         ell_filterInKM = ell_filter / 1d3  ! changing to KM from meters
@@ -172,10 +177,13 @@ module filterModule
         !     mask2d = .FALSE.
         ! end where
 
-        mask2d = greatCircleDistance .LT. (1.1 * ell_filter ) ! 10% tolerance
-
-        sizeMasked = count(mask2d)
-
+        if (allocated(out1d_i_index)) then
+            deallocate(out1d_i_index,  &
+                       out1d_j_index,  &
+                       out1d_weight,   &
+                       stat=err_stat)
+        end if
+        
         allocate(out1d_i_index(sizeMasked),  &
                  out1d_j_index(sizeMasked),  &
                  out1d_weight(sizeMasked),   &
@@ -199,6 +207,18 @@ module filterModule
         out1d_weight = pack(weight2d, mask = mask2d)
     
     end subroutine getMaskedArrAndWeightByDist
+
+    ! function getIindices() result(i_indices)
+    !     real(kind = real_kind), allocatable, dimension(:) :: i_indices
+
+    !     integer :: len, i_err
+    !     len = size(out1d_i_index)
+
+    !     allocate(i_indices(len), stat=i_err)
+    !     i_indices = out1d_i_index
+    !     return
+
+    ! end function getIindices
 
 
 end module filterModule
