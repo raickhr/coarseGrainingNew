@@ -15,10 +15,8 @@ module test
 
             i_indices = (/(a, a=1, n, 1)/)
             j_indices = (/(a, a=1, n, 1)/) !(/(I, I=1, n, 1)/)
-
-            obj = pointWeight(i,j)
             
-            call obj%fillIn( n , i_indices, j_indices, weights )
+            call obj%fillIn( i, j, n , i_indices, j_indices, weights )
 
         end subroutine
 
