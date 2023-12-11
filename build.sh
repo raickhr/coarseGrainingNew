@@ -12,9 +12,8 @@ $FC -c constants.F90
 #$FC -c FieldCollection.f90 
 #$FC -c read_write.f90
 $FC -c operators.F90
-$FC -c filterModule.F90
+$FC -c weight_calc.F90
 $FC -c weight_objects.F90
-$FC -c test.F90
 #$FC -c parallel_filter.f90 
 #$FC -c main.f90 
 
